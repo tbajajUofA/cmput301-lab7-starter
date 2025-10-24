@@ -2,6 +2,7 @@ package com.example.androiduitesting;
 import static androidx.test.espresso.Espresso.onData;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.action.ViewActions.typeText;
 import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
@@ -10,6 +11,9 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.CoreMatchers.anything;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
+
+import android.os.SystemClock;
+
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.espresso.action.ViewActions;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
@@ -30,7 +34,7 @@ public class MainActivityTest {
 // Click on Add City button
         onView(withId(R.id.button_add)).perform(click());
         // Type "Edmonton" in the editText
-        onView(withId(R.id.editText_name)).perform(ViewActions.typeText("Edmonton"));
+        onView(withId(R.id.editText_name)).perform(typeText("Edmonton"));
 // Click on Confirm
                 onView(withId(R.id.button_confirm)).perform(click());
 // Check if text "Edmonton" is matched with any of the text displayed on the screen
@@ -40,11 +44,11 @@ public class MainActivityTest {
     public void testClearCity(){
 // Add first city to the list
         onView(withId(R.id.button_add)).perform(click());
-        onView(withId(R.id.editText_name)).perform(ViewActions.typeText("Edmonton"));
+        onView(withId(R.id.editText_name)).perform(typeText("Edmonton"));
                 onView(withId(R.id.button_confirm)).perform(click());
 //Add another city to the list
         onView(withId(R.id.button_add)).perform(click());
-        onView(withId(R.id.editText_name)).perform(ViewActions.typeText("Vancouver"));
+        onView(withId(R.id.editText_name)).perform(typeText("Vancouver"));
                 onView(withId(R.id.button_confirm)).perform(click());
 //Clear the list
         onView(withId(R.id.button_clear)).perform(click());
@@ -55,7 +59,7 @@ public class MainActivityTest {
     public void testListView(){
 // Add a city
         onView(withId(R.id.button_add)).perform(click());
-        onView(withId(R.id.editText_name)).perform(ViewActions.typeText("Edmonton"));
+        onView(withId(R.id.editText_name)).perform(typeText("Edmonton"));
                 onView(withId(R.id.button_confirm)).perform(click());
                 /*
 // Check if in the Adapter view (given id of that adapter view),
@@ -72,4 +76,49 @@ public class MainActivityTest {
         onData(is(instanceOf(String.class))).inAdapterView(withId(R.id.city_list
         )).atPosition(0).check(matches((withText("Edmonton"))));
     }
+    @Test
+    public void testActivitySwitch() {
+        onView(withId(R.id.button_add)).perform(click());
+        onView(withId(R.id.editText_name)).perform(typeText("a"));
+        onView(withId(R.id.button_confirm)).perform(click());
+
+        onView(withText("a")).perform(click());
+
+        // only show_act.xml, ShowActivity have this id
+        onView(withId(R.id.cityName)).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void testCityNameConsistency() {
+        onView(withId(R.id.button_add)).perform(click());
+        onView(withId(R.id.editText_name)).perform(typeText("t"));
+        onView(withId(R.id.button_confirm)).perform(click());
+
+        onView(withText("t")).perform(click());
+        onView(withId(R.id.cityName)).check(matches(withText("t")));
+    }
+
+    @Test
+    public void testBackButton() {
+            onView(withId(R.id.button_add)).perform(click());
+            onView(withId(R.id.editText_name)).perform(typeText("wait for this test"));
+            onView(withId(R.id.button_confirm)).perform(click());
+            onView(withText("wait for this test")).perform(click());
+
+            onView(withId(R.id.cityName)).check(matches(isDisplayed()));
+            // we need 3 of these cuz apparantly it doesnt register fast enough?
+            //onView(withText("back")).perform(click());
+            //onView(withText("back")).perform(click());
+
+            // never mind we are doing this because of lag. awesome
+            SystemClock.sleep(10000);
+            onView(withId(R.id.back)).perform(click());
+            SystemClock.sleep(10000);
+            onView(withId(R.id.city_list)).check(matches(isDisplayed()));
+
+            onData(is(instanceOf(String.class))).inAdapterView(withId(R.id.city_list
+            )).atPosition(0).check(matches((withText("wait for this test"))));
+        }
 }
+
+
